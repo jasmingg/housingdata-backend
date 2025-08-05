@@ -1,0 +1,13 @@
+::
+====== HOW TO USE THIS SCRIPT ======
+1. Rename this file to 'run-dev.bat'
+2. Fill in your actual DB URL, user, and password below
+3. Run the script with: .\run-dev.bat  (from PowerShell)
+  or just: run-dev.bat  (from Command Prompt)
+4. DO NOT commit your real run-dev.bat to GitHub—it's ignored by .gitignore!
+::
+@echo off
+set DB_URL=jdbc:postgresql://YOUR_DB_URL_HERE
+set DB_USER=YOUR_USER_HERE
+set DB_PASS=YOUR_PASSWORD_HERE
+mvn spring-boot:run
