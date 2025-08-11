@@ -1,26 +1,15 @@
-package com.jasmin.housingaffordability.service;
-
-import org.springframework.stereotype.Service;
-
-import com.jasmin.housingaffordability.repository.HousingDataRepository;
-import com.jasmin.housingaffordability.dto.RegionRankResult;
-
+package com.jasmin.housingaffordability.util;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Collections;
-import java.util.List;
 
-@Service
-public class RegionRankService {
-  private final HousingDataRepository repo;
+public class StateRegionMapper {
   private static final Map<String, Integer> stateToRegion;
 
-  public RegionRankService (HousingDataRepository repo) {
-    this.repo = repo;
-  }
 
     static {
       LinkedHashMap<String, Integer> m = new LinkedHashMap<>();
+      // note: keeping everything lower-case simplifies the logic
       m.put("alabama", 3);
       m.put("alaska", 4);
       m.put("arizona", 4);
@@ -74,7 +63,8 @@ public class RegionRankService {
       m.put("wyoming", 4);
       stateToRegion = Collections.unmodifiableMap(m); //setting stateToRegion read-only version
     }   
-    public Integer regionCodeForState(String state) {
+
+  public static Integer getRegionCode(String state) {
     if (state == null) return null;
     // replacing upper-casing/whitespace
     String normalized = state.trim()
@@ -86,31 +76,17 @@ public class RegionRankService {
       return stateToRegion.get(normalized);
   }
 
-  // returning a record for clean JSON
-  public RegionRankResult computeRegionRankWithStats(String state) {
-      Integer userRegionCode = regionCodeForState(state); // best to use Integer object, it can hold null
-      if (userRegionCode == null) throw new IllegalArgumentException("Unknown state: " + state);
-      
-      List<Object[]> rows = repo.findRegionAverages(); // each row: [regionCode, dataPerRegion, avgIncome]
-
-      // sort by AVG(lmed) descending
-      rows.sort((a, b) -> Double.compare(
-        ((Number) b[2]).doubleValue(),  // b's avg local median income
-        ((Number) a[2]).doubleValue()   // a's avg local median income
-      ));
-
-      for (int i = 0; i < rows.size(); i++) {
-        int currRegionCode = ((Number) rows.get(i)[0]).intValue(); // converting from Object[] to Number object to int
-        if (currRegionCode == userRegionCode) {
-          int avgIncome = ((Number)rows.get(i)[2]).intValue(); // [region, count, income]
-          int dataCount = ((Number)rows.get(i)[1]).intValue(); // ^^
-          // rank is position + 1 because lists are 0-based
-          int rank = i + 1;
-          return new RegionRankResult(rank, avgIncome, dataCount);
-        }
-      }
-   // if we didn’t see the user’s region among the 4, that’s a data problem
-    throw new IllegalStateException("User region not found in region averages.");
+  private static final Map<Integer, String> regionCodeToRegion;
+  static {
+    LinkedHashMap<Integer, String> m = new LinkedHashMap<>();
+    m.put(1, "Northeast");
+    m.put(2, "Midwest");
+    m.put(3, "South");
+    m.put(4, "West");
+    regionCodeToRegion = Collections.unmodifiableMap(m);
   }
 
+  public static String getRegionName(Integer regionCode) {
+    return regionCodeToRegion.get(regionCode);
+  }
 }

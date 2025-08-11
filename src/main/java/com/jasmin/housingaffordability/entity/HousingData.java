@@ -12,7 +12,7 @@ public class HousingData {
     @Column(name = "control")
     private String control;  // Primary key (assuming it's unique; adjust if not!)
 
-    private String metro3;
+    private Integer metro3;
     private Integer region;
     private Double lmed;
     private Double fmr;
@@ -21,8 +21,8 @@ public class HousingData {
     private Double cost12;
     private Double costmed;
     private Double burden;
-    private String burden_category;
-    private String ownrent;
+    private String burdenCategory;
+    private String ownRent;
     private String status;
     private String type;
 
@@ -33,8 +33,8 @@ public class HousingData {
     public String getControl() { return control; }
     public void setControl(String control) { this.control = control; }
 
-    public String getMetro3() { return metro3; }
-    public void setMetro3(String metro3) { this.metro3 = metro3; }
+    public Integer getMetro3() { return metro3; }
+    public void setMetro3(Integer metro3) { this.metro3 = metro3; }
 
     public Integer getRegion() { return region; }
     public void setRegion(Integer region) { this.region = region; }
@@ -60,11 +60,11 @@ public class HousingData {
     public Double getBurden() { return burden; }
     public void setBurden(Double burden) { this.burden = burden; }
 
-    public String getBurden_category() { return burden_category; }
-    public void setBurden_category(String burden_category) { this.burden_category = burden_category; }
+    public String getBurden_category() { return burdenCategory; }
+    public void setBurden_category(String burden_category) { this.burdenCategory = burden_category; }
 
-    public String getOwnrent() { return ownrent; }
-    public void setOwnrent(String ownrent) { this.ownrent = ownrent; }
+    public String getOwnrent() { return ownRent; }
+    public void setOwnrent(String ownrent) { this.ownRent = ownrent; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
