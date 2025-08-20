@@ -2,7 +2,6 @@ package com.jasmin.housingaffordability.service;
 
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.jasmin.housingaffordability.repository.HousingDataRepository;
@@ -57,7 +56,6 @@ public class MetroStatsService {
       between30and50p /= s;
       over50p         /= s;
     }
-    System.out.println(under30p + between30and50p + over50p);
 
     return (new MetroStatsResult(
       metroCode,

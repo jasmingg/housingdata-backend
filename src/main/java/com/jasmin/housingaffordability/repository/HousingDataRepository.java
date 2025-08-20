@@ -15,34 +15,41 @@ public interface HousingDataRepository extends JpaRepository<HousingData, String
 // Purpose: Return region codes ranked by average income (highest first).
 // Result: List<Number> where each item = region code.
 
-     @Query("""
-        SELECT hd.region AS region
-        FROM HousingData hd
-        GROUP BY hd.region
-        ORDER BY AVG(hd.lmed) DESC
-    """)
-    List<Object []> rankRegions();
+  @Query("""
+     SELECT hd.region AS region
+     FROM HousingData hd
+     GROUP BY hd.region
+     ORDER BY AVG(hd.lmed) DESC
+   """)
+  List<Object []> rankRegions();
 
-    // Purpose: Calculate stats for a single region (filtered by regionCode)
-    // Result mapping (Object[]):
-//   row[0] = data_count                (Long)
-//   row[1] = avg_income                (Double)
-//   row[2] = median_housing_cost*      (Double)  *approximation via AVG(costmed)
-//   row[3] = less_than_30_percent      (Double; 0.0–1.0 proportion)
-//   row[4] = between_30_and_50_percent (Double; 0.0–1.0 proportion)
-//   row[5] = greater_than_50_percent   (Double; 0.0–1.0 proportion)
-@Query("""
-  SELECT
-    COUNT(hd),      
-    AVG(hd.lmed),   
-    AVG(hd.costmed),
-    AVG(CASE WHEN hd.burdenCategory = 'Less than 30%' THEN 1.0 ELSE 0.0 END),  
-    AVG(CASE WHEN hd.burdenCategory = '30-50%'        THEN 1.0 ELSE 0.0 END),  
-    AVG(CASE WHEN hd.burdenCategory = '>50%'          THEN 1.0 ELSE 0.0 END)   
-  FROM HousingData hd
-  WHERE hd.region = :regionCode
-""")
-List<Object[]> findRegionDetailStats(@Param("regionCode") Integer regionCode);
+// Purpose: Calculate stats for an entire region (all metro types combined)
+// (filtered by :regionCode), using numeric burden ratios directly instead of text categories.
+//
+// Result (a list of Object[]):
+//   row[0] = data_count                (Long)   total number of rows
+//   row[1] = avg_income                (Double) average of lmed (median household income)
+//   row[2] = median_housing_cost       (Double) average of costmed (median housing cost)
+//   row[3] = less_than_30_percent      (Double; 0.0–1.0) fraction with burden < 0.30
+//   row[4] = between_30_and_50_percent (Double; 0.0–1.0) fraction with 0.30 ≤ burden ≤ 0.50
+//   row[5] = greater_than_50_percent   (Double; 0.0–1.0) fraction with burden > 0.50
+
+  @Query(value = """
+    SELECT
+      COUNT(*)                                                   AS data_count,
+      AVG(hd.lmed)::float                                        AS avg_income,
+      AVG(hd.costmed)::float                                     AS median_housing_cost,
+      -- Fractions of non-null burden rows in each bin:
+      SUM(CASE WHEN hd.burden IS NOT NULL AND hd.burden < 0.30 THEN 1 ELSE 0 END)::float
+        / NULLIF(SUM(CASE WHEN hd.burden IS NOT NULL THEN 1 ELSE 0 END), 0)        AS lt30,
+      SUM(CASE WHEN hd.burden IS NOT NULL AND hd.burden >= 0.30 AND hd.burden <= 0.50 THEN 1 ELSE 0 END)::float
+        / NULLIF(SUM(CASE WHEN hd.burden IS NOT NULL THEN 1 ELSE 0 END), 0)        AS btw30_50,
+      SUM(CASE WHEN hd.burden IS NOT NULL AND hd.burden > 0.50 THEN 1 ELSE 0 END)::float
+        / NULLIF(SUM(CASE WHEN hd.burden IS NOT NULL THEN 1 ELSE 0 END), 0)        AS gt50
+    FROM housing_data hd
+    WHERE hd.region = :regionCode
+  """, nativeQuery = true)
+  List<Object[]> findRegionDetailStats(@Param("regionCode") Integer regionCode);
 
 
 // Purpose: Calculate stats for a single metro type within a specific region

@@ -54,6 +54,15 @@ public class RegionStatsService {
       double under30p = ((Number) row.get(0)[3]).doubleValue();
       double between30and50p = ((Number) row.get(0)[4]).doubleValue();
       double over50p = ((Number) row.get(0)[5]).doubleValue();
+
+              // normalize tiny drift - helps to add up to exact 1.0 for missing data values
+    double s = under30p + between30and50p + over50p;
+    if (s > 0 && Math.abs(s - 1.0) > 1e-6) {
+      under30p        /= s;
+      between30and50p /= s;
+      over50p         /= s;
+    }
+    
       return (new RegionStatsResult(
         ranking,
         dataCount,
