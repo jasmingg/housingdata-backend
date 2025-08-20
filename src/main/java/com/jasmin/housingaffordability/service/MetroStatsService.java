@@ -1,6 +1,8 @@
 package com.jasmin.housingaffordability.service;
 
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 import java.util.List;
 
 import com.jasmin.housingaffordability.repository.HousingDataRepository;
@@ -27,6 +29,7 @@ public class MetroStatsService {
 
     List<Object[]> row = repo.findMetroStatsForRegion(regionCode, metroCode);
 
+
     if (metroCode == null) throw new IllegalArgumentException("Unknown metro code: " + metroCode);
     else if (metroCode == 1) {
       metroName = "Central City";
@@ -35,7 +38,7 @@ public class MetroStatsService {
       metroName = "Suburban Area";
     }
     else if (metroCode == 5) {
-      metroName = "Nonmetropolitan area ";
+      metroName = "Nonmetropolitan area";
     }
     else {
       throw new IllegalArgumentException("Unknown metro name: " + metroCode);
@@ -45,7 +48,16 @@ public class MetroStatsService {
     long dataCount = ( (Number)row.get(0)[0] ).longValue();
     double under30p = ( (Number)row.get(0)[3] ).doubleValue();
     double between30and50p = ( (Number)row.get(0)[4] ).doubleValue();
-    double under50p = ( (Number)row.get(0)[5] ).doubleValue();
+    double over50p = ( (Number)row.get(0)[5] ).doubleValue();
+
+        // normalize tiny drift - helps to add up to exact 1.0 for missing data values
+    double s = under30p + between30and50p + over50p;
+    if (s > 0 && Math.abs(s - 1.0) > 1e-6) {
+      under30p        /= s;
+      between30and50p /= s;
+      over50p         /= s;
+    }
+    System.out.println(under30p + between30and50p + over50p);
 
     return (new MetroStatsResult(
       metroCode,
@@ -53,7 +65,7 @@ public class MetroStatsService {
       avgIncome,
       medianHousingCost,
       dataCount,
-      new BurdenDto(under30p, between30and50p, under50p)
+      new BurdenDto(under30p, between30and50p, over50p)
          )
     );
   }
