@@ -49,7 +49,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
     long remaining = Math.max(probe.getRemainingTokens(), 0);
-    res.addHeader("X-RateLimit-Limit", "60");
+    res.addHeader("X-RateLimit-Limit", "180"); // changed to 180 to allow GitHub bot to generate visualizer
     res.addHeader("X-RateLimit-Remaining", String.valueOf(remaining));
 
     // 🔎 terminal log you want:
