@@ -10,7 +10,7 @@ public class CorsConfig implements WebMvcConfigurer {
   public void addCorsMappings(CorsRegistry r) {
     r.addMapping("/**")
      // allows local frontend
-     .allowedOrigins("http://localhost:5173")
+     .allowedOrigins("http://localhost:5173", "https://housingdata.netlify.app")
      // only GET for your public API
      .allowedMethods("GET", "HEAD", "OPTIONS")
      // no cookies/auth needed, so keep credentials off
