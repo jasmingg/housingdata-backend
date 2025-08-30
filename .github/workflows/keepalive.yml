@@ -1,0 +1,22 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # every ~5 days at 13:00 UTC (≈ 9am ET, adjust if you want)
+    - cron: "0 13 */5 * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PING_URL: ${{ secrets.PING_URL }}
+    steps:
+      - name: Ping EB endpoint (HEAD, then GET with cache-buster)
+        run: |
+          echo "Pinging $PING_URL ..."
+          curl -I --fail --max-time 20 "$PING_URL" \
+            || curl -sS --fail --max-time 30 "$PING_URL&_ts=$(date +%s)"
+      - name: Show UTC time
+        run: date -u
