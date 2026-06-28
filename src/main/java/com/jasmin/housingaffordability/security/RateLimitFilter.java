@@ -1,5 +1,6 @@
 package com.jasmin.housingaffordability.security;
 
+import com.jasmin.housingaffordability.dto.BurdenDto;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -20,18 +21,30 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
+  private final BurdenDto burdenDto;
+
   private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
+  private static final int REQUESTS_PER_MINUTE = 60;
+
+  // requests per minute (1 request per second on average)
   private static final Bandwidth BANDWIDTH = Bandwidth.builder()
-      .capacity(60)
-      .refillIntervally(60, Duration.ofMinutes(1))
-      .initialTokens(60)
+      .capacity(REQUESTS_PER_MINUTE)
+      .refillIntervally(REQUESTS_PER_MINUTE, Duration.ofMinutes(1))
+      .initialTokens(REQUESTS_PER_MINUTE)
       .build();
 
   private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
+  RateLimitFilter(BurdenDto burdenDto) {
+    this.burdenDto = burdenDto;
+  }
+
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
+    // applies rate limit to "/api" endpoints
+      // adjust this if there are other public endpoints that need rate limiting
+      // all api endpoints in controller
     return !request.getRequestURI().startsWith("/api");
   }
 
@@ -49,10 +62,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
     ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
     long remaining = Math.max(probe.getRemainingTokens(), 0);
-    res.addHeader("X-RateLimit-Limit", "180"); // changed to 180 to allow GitHub bot to generate visualizer
+    // This header in every response tells client:
+      //  how many tokens they have left in the current window
+      //  and what the limit is.
+    res.addHeader("X-RateLimit-Limit", String.valueOf(REQUESTS_PER_MINUTE));
     res.addHeader("X-RateLimit-Remaining", String.valueOf(remaining));
 
-    // 🔎 terminal log you want:
+    // 🔎 logging the tokens left 
     log.info("rate-limit key={} remaining={}", key, remaining);
 
     if (probe.isConsumed()) {
@@ -63,8 +79,21 @@ public class RateLimitFilter extends OncePerRequestFilter {
       res.sendError(429, "Too Many Requests");
     }
   }
-
+  /*
+   *  this is a critical function for this filter file:
+   *  first tries to get CF-Connecting-IP header (used by Cloudflare) to get the real client IP address
+   * if not present, falls back to the remote address of the request
+   * 
+  */
   private String clientKey(HttpServletRequest req) {
-    return "ip:" + req.getRemoteAddr();
+    String cfConnectingIp = req.getHeader("CF-Connecting-IP");
+    if (cfConnectingIp != null && !cfConnectingIp.isEmpty()) {
+      return "ip: " + cfConnectingIp;
+    }
+    // fallback to remote address if CF-Connecting-IP is not present
+    // used when not behind Cloudflare:
+      // ie when running locally or in a non-Cloudflare environment (direct-to-pi)
+      // should returns the client IP address outside of the Cloudflare
+    return "ip: " + req.getRemoteAddr();
   }
 }
