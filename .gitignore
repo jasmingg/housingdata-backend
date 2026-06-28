@@ -34,3 +34,7 @@ build/
 
 ## Secret File with env variables for PostgreSQL database ##
 run-dev.bat
+
+# env files
+*.env.local
+.env
