@@ -1,6 +1,5 @@
 package com.jasmin.housingaffordability.security;
 
-import com.jasmin.housingaffordability.dto.BurdenDto;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -10,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -19,9 +19,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Order(1) // runs BEFORE the debug filter (set to @Order(2))
 public class RateLimitFilter extends OncePerRequestFilter {
-
-  private final BurdenDto burdenDto;
 
   private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
@@ -36,8 +35,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
   private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-  RateLimitFilter(BurdenDto burdenDto) {
-    this.burdenDto = burdenDto;
+  RateLimitFilter() {
+    log.info("RateLimitFilter initialized with limit: {} requests per minute", REQUESTS_PER_MINUTE);
   }
 
   @Override
