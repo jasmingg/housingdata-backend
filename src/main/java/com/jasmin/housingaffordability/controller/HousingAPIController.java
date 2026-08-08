@@ -54,17 +54,23 @@ public class HousingAPIController {
   }
   
 
-// for testing/debugging purposes, not for production
-  @GetMapping("/debug/summary")
+// Debug-only endpoint for sanity-checking the dataset shape.
+// It is not part of the public API contract and is meant for local inspection.
+@GetMapping("/debug/summary")
 public DebugSummaryResponse debugSummary() {
+  // Total number of rows in the housing_data table.
   long total = repo.countAll();
 
+  // Group the data by region code and count how many rows fall into each region.
+  // The repository returns each row as [regionCode, rowCount], so we map it into a DTO.
   List<RegionCount> byRegion = repo.countByRegion().stream()
     .map(r -> new RegionCount(((Number) r[0]).intValue(), ((Number) r[1]).longValue()))
     .toList();
 
+  // Pull the min/avg/max values for lmed (median household income) from the repository.
+  // The repository query returns a single row as [minLmed, avgLmed, maxLmed].
   List<Object[]> statsRow = repo.lmedStats();
-  Object [] stats = statsRow.get(0);
+  Object[] stats = statsRow.get(0);
   double min = ((Number) stats[0]).doubleValue();
   double avg = ((Number) stats[1]).doubleValue();
   double max = ((Number) stats[2]).doubleValue();

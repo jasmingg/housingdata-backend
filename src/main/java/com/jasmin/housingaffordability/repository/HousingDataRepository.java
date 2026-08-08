@@ -34,6 +34,7 @@ public interface HousingDataRepository extends JpaRepository<HousingData, String
 //   row[4] = between_30_and_50_percent (Double; 0.0–1.0) fraction with 0.30 ≤ burden ≤ 0.50
 //   row[5] = greater_than_50_percent   (Double; 0.0–1.0) fraction with burden > 0.50
 
+  // This query uses a named bind parameter (:regionCode), so it is safe from SQL injection.
   @Query(value = """
     SELECT
       COUNT(*)                                                   AS data_count,
@@ -62,6 +63,7 @@ public interface HousingDataRepository extends JpaRepository<HousingData, String
 //   row[4] = between_30_and_50_percent (Double; 0.0–1.0) fraction with 0.30 ≤ burden ≤ 0.50
 //   row[5] = greater_than_50_percent   (Double; 0.0–1.0) fraction with burden > 0.50
 
+// This query uses named bind parameters (:regionCode, :metroType), so it is safe from SQL injection.
 @Query(value = """
   SELECT
     COUNT(*)                                                   AS data_count,

@@ -34,7 +34,38 @@ build/
 
 ## Secret File with env variables for PostgreSQL database ##
 run-dev.bat
+run-dev.bat.local
 
 # env files
-*.env.local
 .env
+.env.*
+*.env.local
+*.env.development
+*.env.production
+!.env.example
+
+# local config / secrets
+application-local.properties
+application-dev.properties
+application-prod.properties
+secrets/
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.pkcs8
+
+# local database / backup files
+*.sql
+*.dump
+*.bak
+*.backup
+
+# tunnel / infra config
+cloudflared/
+*.yaml.local
+*.yml.local
