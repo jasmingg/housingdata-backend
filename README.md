@@ -9,11 +9,10 @@ The API provides state- and metro-level housing affordability data for consumpti
 ## 🚀 Highlights
 
 - ☕ Java 17 + Spring Boot
-- 🌐 RESTful API with query-based filtering
-- 📊 Data covering all 50 U.S. states across three metro classifications
-- ⚡ Pre-aggregated data for efficient API responses
-- 🔌 Integrated with React frontend and automated chart generation
+- RESTful API with query-based filtering
+- Data covering all 50 U.S. states across three metro classifications
 - ⚙️ Deployed and maintained self-hosted backend infrastructure
+- Integrated with React frontend and automated chart generation
 
 ## 🔎 API
 
