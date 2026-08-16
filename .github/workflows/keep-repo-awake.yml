@@ -1,3 +1,8 @@
+# Keep Repo Awake
+# Purpose: Prevents GitHub from disabling scheduled workflows after 60 days
+# of repo inactivity (scheduled runs don't count as activity, but commits do).
+# Cadence: Every Sunday 8:00 AM EST. Manual trigger available via workflow_dispatch.
+# What it does: Touches (by changing the timestamp of) .keepalive, commits, and pushes.
 name: Keep Repo Awake
 
 on:

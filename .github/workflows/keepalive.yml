@@ -1,8 +1,16 @@
+# Keep Supabase Alive
+# WHY: Supabase's free tier may pause projects after a period of inactivity.
+#      This workflow periodically queries a lightweight table to generate
+#      database activity.
+#
+# HOW: A cron schedule runs every ~5 days and sends a GET request to the
+#      keep_alive REST endpoint using the Supabase publishable key.
+
 name: Keep Supabase Alive
 
 on:
   schedule:
-    # every ~5 days at 13:00 UTC (≈ 9am ET, adjust if you want)
+    # Every ~5 days at 13:00 UTC (≈ 9am ET)
     - cron: "0 13 */5 * *"
   workflow_dispatch: {}
 
@@ -10,13 +18,16 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      PING_URL: ${{ secrets.PING_URL }}
+
     steps:
-      - name: Ping EB endpoint (HEAD, then GET with cache-buster)
+      - name: Ping Supabase database
         run: |
-          echo "Pinging $PING_URL ..."
-          curl -I --fail --max-time 20 "$PING_URL" \
-            || curl -sS --fail --max-time 30 "$PING_URL&_ts=$(date +%s)"
+          echo "Pinging Supabase..."
+          curl --fail --silent --show-error --max-time 20 \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
+            "$PING_URL"
+        env:
+          PING_URL: ${{ secrets.PING_URL }}
+
       - name: Show UTC time
         run: date -u
